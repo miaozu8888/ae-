@@ -17,12 +17,16 @@ AIGC:
 
 ```
 ae-template-vault/
-├── index.html        # 页面入口
-├── css/style.css     # 样式
+├── index.html        # 页面入口（浏览/筛选/搜索/详情）
+├── add.html          # ★ 添加模板工具页（填表自动生成代码）
+├── css/
+│   ├── style.css     # 主样式（素材平台风格：白底黑高亮）
+│   └── add.css       # 工具页样式
 ├── js/
 │   ├── data.js       # ★ 模板数据（新增模板改这里）
 │   ├── search.js     # 模糊搜索算法（零依赖）
-│   └── app.js        # 渲染/分类/排序/详情逻辑
+│   ├── app.js        # 多级筛选/排序/渲染/详情逻辑
+│   └── add.js        # 工具页表单生成逻辑
 └── README.md
 ```
 
@@ -31,16 +35,22 @@ ae-template-vault/
 - 方式一：直接双击 `index.html`（数据内嵌在 JS 中，file:// 可正常使用）
 - 方式二（推荐）：在项目目录执行 `python -m http.server 8000`，浏览器打开 `http://localhost:8000`
 
-## 如何新增模板
+## 如何新增模板（推荐：工具页）
 
-打开 `js/data.js`，在 `TEMPLATES` 数组中新增一条记录：
+打开工具页 `add.html`（站点顶栏点「＋ 添加模板」），填写模板名称、预览/下载链接、技术参数等，右侧自动生成代码。工具页还支持：**点「上传文件」直接把本地文件传到免费匿名托管并自动回填链接**；填好 GitHub 用户名/仓库名/Token 后点**「直接入库」**，自动把记录写进仓库 `js/data.js`，免手动改代码。也可以点「复制代码」后到 GitHub 的 `js/data.js` 里，在 `TEMPLATES` 数组末尾（`];` 前）粘贴即可，注意前一条记录末尾补逗号。
+
+也可以手动在 `js/data.js` 的 `TEMPLATES` 数组中新增一条记录：
 
 ```js
 {
   id: "my-template-001",          // 唯一 ID
   name: "模板名称",                // 用于搜索
-  category: "标题动画",            // 分类，自动出现在筛选栏
+  type: "AE模板",                 // 类型：AE模板/Pr模板/视频素材/...
+  category: "标题动画",            // 分类（二级）
+  style: "故障风",                // 风格：实拍写实/立体三维/.../霓虹赛博
+  source: "不含AI",               // 创作：真实影像/含AI/不含AI
   tags: ["标题", "故障", "开场"],   // 标签，用于模糊搜索
+  creator: "我的工作室",           // 作者署名（可选）
   description: "一句话描述……",
   previewVideo: "https://.../preview.mp4",  // 预览视频直链（MP4）
   coverImage: "",                 // 封面图（可选）
@@ -48,6 +58,10 @@ ae-template-vault/
   fileSize: "约 200 MB",
   version: "v1.0",
   software: "AE 2022+",
+  resolution: "1080P",            // 4K / 1080P / 720P
+  ratio: "16:9",                  // 16:9 / 9:16 / 1:1 / 4:3
+  fps: 30,                        // 24 / 25 / 30 / 60
+  duration: 12,                   // 时长（秒，用于高级筛选）
   updatedAt: "2026-10-19"
 }
 ```
