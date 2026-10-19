@@ -71,7 +71,7 @@ window.TEMPLATES = [
     updatedAt: "2026-09-20"
   }
 ,
-    {
+      {
     id: '测试-cza2',
     name: '测试',
     type: 'AE模板',
@@ -83,7 +83,7 @@ window.TEMPLATES = [
     description: '车饰',
     previewVideo: '',
     coverImage: '',
-    downloadUrl: ': https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q',
+    downloadUrl: 'https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q',
     fileSize: '',
     version: '',
     software: '',
