@@ -127,4 +127,27 @@ window.TEMPLATES = [
     duration: 15,
     updatedAt: '2026-09-20'
   }
+,
+  {
+    id: '01',
+    name: '江苏徐州中国世界地图',
+    type: 'AE模板',
+    category: '背景素材',
+    style: '粒子光效',
+    source: '不含AI',
+    tags: ['地图', '徐州'],
+    creator: '',
+    description: '',
+    previewVideo: 'https://cdn.jsdelivr.net/gh/miaozu8888/ae-@main/previews/XARP325H%E8%8E%B7%E5%BE%97TOP50%E5%B8%82%E5%9C%BA%E8%A1%A8%E7%8E%B0%E9%87%91%E5%A5%96.mp4',
+    coverImage: 'https://pan.baidu.com/s/12XEpXu--oYP4V-w41t45jA?pwd=7jg9',
+    downloadUrl: 'https://pan.baidu.com/s/1qA-40tTKueDJkG9igFTArw?pwd=w76x',
+    fileSize: '约 85 MB',
+    version: 'v2.1',
+    software: 'AE 2023+',
+    resolution: '4K',
+    ratio: '16:9',
+    fps: 25,
+    duration: 15,
+    updatedAt: '2026-09-20'
+  }
 ];
