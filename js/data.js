@@ -70,29 +70,7 @@ window.TEMPLATES = [
     duration: 15,
     updatedAt: "2026-09-20"
   }
-,
-      {
-    id: '测试-cza2',
-    name: '测试',
-    type: 'AE模板',
-    category: '',
-    style: '平面二维',
-    source: '真实影像',
-    tags: [],
-    creator: '',
-    description: '车饰',
-    previewVideo: '',
-    coverImage: '',
-    downloadUrl: 'https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q',
-    fileSize: '',
-    version: '',
-    software: '',
-    resolution: '4K',
-    ratio: '16:9',
-    fps: 24,
-    duration: 0,
-    updatedAt: '2026-10-19'
-  }
+
 
 ,
   {
