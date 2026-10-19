@@ -1,0 +1,170 @@
+/* =========================================================
+ * 添加模板工具页 · 独立样式
+ * ========================================================= */
+
+.add-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.add-col { min-width: 0; }
+
+.page-title { font-size: 22px; font-weight: 700; }
+.page-desc { color: #8a9099; font-size: 13px; margin: 6px 0 18px; line-height: 1.7; }
+.page-desc code, .usage-steps code {
+  background: #f2f3f5;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+}
+
+.form-section {
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  margin: 18px 0 10px;
+  padding-left: 8px;
+  border-left: 3px solid #111;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field.span-2 { grid-column: span 2; }
+
+.field span { font-size: 12px; color: #8a9099; }
+
+.field input, .field select, .field-textarea {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e4e8;
+  background: #fff;
+  color: #222;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.field input:focus, .field select:focus, .field-textarea:focus { border-color: #111; }
+
+.field-textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ---------- 上传按钮 ---------- */
+.input-row { display: flex; gap: 8px; align-items: stretch; }
+.input-row input { flex: 1; }
+
+.upload-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid #c9cdd3;
+  background: #fff;
+  color: #222;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+}
+
+.upload-btn:hover { border-color: #111; color: #111; }
+.upload-btn.uploading { opacity: .5; pointer-events: none; }
+
+.upload-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8a9099;
+  line-height: 1.6;
+}
+
+/* ---------- GitHub 一键保存 ---------- */
+.github-save {
+  margin-top: 22px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e4e8;
+}
+
+.save-status {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #555;
+  white-space: pre-wrap;
+}
+
+.save-status.ok { color: #1a7f37; }
+.save-status.err { color: #c0392b; }
+
+/* ---------- Code column ---------- */
+.code-col {
+  position: sticky;
+  top: 74px;
+}
+
+.code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  border-radius: 8px 8px 0 0;
+}
+
+.code-status { font-size: 12px; opacity: .8; }
+
+.code-output {
+  background: #1a1d24;
+  color: #e6e9f0;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 14px;
+  max-height: 460px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-radius: 0 0 8px 8px;
+}
+
+.code-output .hl-key { color: #ff79c6; }
+.code-output .hl-str { color: #f1fa8c; }
+.code-output .hl-num { color: #bd93f9; }
+
+.usage-steps {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #e6e8eb;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #555;
+  line-height: 2;
+}
+
+.usage-steps h3 { font-size: 14px; color: #222; margin-bottom: 6px; }
+.usage-steps ol { padding-left: 20px; }
+
+@media (max-width: 900px) {
+  .add-main { grid-template-columns: 1fr; }
+  .code-col { position: static; }
+}
