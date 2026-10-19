@@ -93,29 +93,7 @@ window.TEMPLATES = [
     duration: 0,
     updatedAt: '2026-10-19'
   }
-,
-  {
-    id: '通过网盘分享的文件-20240711-2015-2024年回顾短片-mp4-链接-0wu9',
-    name: '通过网盘分享的文件：20240711-2015-2024年回顾短片.mp4 链接:',
-    type: 'AE模板',
-    category: '',
-    style: '实拍写实',
-    source: '真实影像',
-    tags: [],
-    creator: '',
-    description: '',
-    previewVideo: '',
-    coverImage: '',
-    downloadUrl: 'https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q',
-    fileSize: '',
-    version: '',
-    software: '',
-    resolution: '4K',
-    ratio: '16:9',
-    fps: 24,
-    duration: 0,
-    updatedAt: '2026-10-19'
-  }
+
 ,
   {
     id: '测试-cza2',
