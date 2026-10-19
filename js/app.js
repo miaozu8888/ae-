@@ -1,11 +1,20 @@
 /* =========================================================
  * AE 模板库 · 主逻辑：多级筛选 / 搜索 / 排序 / 详情弹窗
+ * 筛选面板标签由 js/data.js 的 FILTER_OPTIONS 动态生成
  * ========================================================= */
 
 (function () {
   "use strict";
 
   var TEMPLATES = window.TEMPLATES || [];
+  var FILTER_OPTIONS = window.FILTER_OPTIONS || {
+    type: [],
+    style: [],
+    source: [],
+    resolution: ["4K", "1080P", "720P"],
+    ratio: ["16:9", "9:16", "1:1", "4:3"],
+    fps: ["24", "25", "30", "60"]
+  };
 
   var state = {
     query: "",
@@ -18,19 +27,12 @@
     search: document.getElementById("search-input"),
     sort: document.getElementById("sort-select"),
     panel: document.getElementById("filter-panel"),
-    btnCollapse: document.getElementById("btn-collapse"),
-    btnReset: document.getElementById("btn-reset"),
+    filterInner: document.getElementById("filter-inner"),
     stats: document.getElementById("stats-line"),
     empty: document.getElementById("empty-state"),
     mask: document.getElementById("modal-mask"),
     modalBody: document.getElementById("modal-body"),
-    modalClose: document.getElementById("modal-close"),
-    adv: {
-      resolution: document.getElementById("adv-resolution"),
-      ratio: document.getElementById("adv-ratio"),
-      fps: document.getElementById("adv-fps"),
-      duration: document.getElementById("adv-duration")
-    }
+    modalClose: document.getElementById("modal-close")
   };
 
   /* ---------- 工具 ---------- */
@@ -46,6 +48,65 @@
     var m = String(s || "").match(/([\d.]+)\s*(MB|GB)/i);
     if (!m) return 0;
     return parseFloat(m[1]) * (m[2].toUpperCase() === "GB" ? 1024 : 1);
+  }
+
+  /* ---------- 筛选面板动态生成 ---------- */
+  var FILTER_ROWS = [
+    { key: "type", label: "类型", allText: "全部类型" },
+    { key: "style", label: "风格", allText: "全部风格" },
+    { key: "source", label: "创作", allText: "全部创作" }
+  ];
+
+  function buildFilterPanel() {
+    if (!el.filterInner) return;
+    var html = "";
+    FILTER_ROWS.forEach(function (row) {
+      var opts = FILTER_OPTIONS[row.key] || [];
+      html += '<div class="filter-row" id="row-' + row.key + '">' +
+        '<span class="filter-label">' + escapeHtml(row.label) + "</span>" +
+        '<div class="filter-tags">' +
+        '<span class="filter-tag active" data-key="' + row.key + '" data-val="__all__">' + escapeHtml(row.allText) + "</span>";
+      opts.forEach(function (v) {
+        html += '<span class="filter-tag" data-key="' + row.key + '" data-val="' + escAttr(v) + '">' + escapeHtml(v) + "</span>";
+      });
+      html += "</div></div>";
+    });
+
+    html += '<div class="filter-row" id="row-advanced">' +
+      '<span class="filter-label">高级</span>' +
+      '<div class="filter-tags">' +
+      '<select class="adv-select" id="adv-resolution"><option value="__all__">分辨率</option>';
+    (FILTER_OPTIONS.resolution || []).forEach(function (v) {
+      html += '<option value="' + escAttr(v) + '">' + escapeHtml(v) + "</option>";
+    });
+    html += "</select>";
+    html += '<select class="adv-select" id="adv-ratio"><option value="__all__">宽高比</option>';
+    (FILTER_OPTIONS.ratio || []).forEach(function (v) {
+      html += '<option value="' + escAttr(v) + '">' + escapeHtml(v) + "</option>";
+    });
+    html += "</select>";
+    html += '<select class="adv-select" id="adv-fps"><option value="__all__">帧率</option>';
+    (FILTER_OPTIONS.fps || []).forEach(function (v) {
+      html += '<option value="' + escAttr(v) + '">' + escapeHtml(v) + "fps</option>";
+    });
+    html += "</select>";
+    html += '<select class="adv-select" id="adv-duration"><option value="__all__">时长</option><option value="short">10秒内</option><option value="mid">10-30秒</option><option value="long">30秒以上</option></select>';
+    html += "</div>";
+    html += '<div class="filter-tools">' +
+      '<button class="tool-btn" id="btn-collapse" title="收起/展开筛选">收起筛选</button>' +
+      '<button class="tool-btn" id="btn-reset" title="重置所有条件">条件重置</button>' +
+      "</div></div>";
+
+    el.filterInner.innerHTML = html;
+
+    el.adv = {
+      resolution: document.getElementById("adv-resolution"),
+      ratio: document.getElementById("adv-ratio"),
+      fps: document.getElementById("adv-fps"),
+      duration: document.getElementById("adv-duration")
+    };
+    el.btnCollapse = document.getElementById("btn-collapse");
+    el.btnReset = document.getElementById("btn-reset");
   }
 
   /* ---------- 筛选 ---------- */
@@ -80,14 +141,19 @@
   }
 
   /* ---------- 卡片渲染 ---------- */
+  var PLACEHOLDER_CLASS = 'class="media-placeholder"';
+  var PLACEHOLDER_FAIL = '<div class="media-placeholder fail">预览加载失败</div>';
+
   function mediaHTML(t) {
     if (t.previewVideo) {
-      return '<video src="' + escAttr(t.previewVideo) + '" muted loop preload="metadata" playsinline></video>';
+      return '<video src="' + escAttr(t.previewVideo) + '" muted loop preload="metadata" playsinline' +
+        ' onerror="this.outerHTML=' + escAttr(PLACEHOLDER_FAIL) + '"></video>';
     }
     if (t.coverImage) {
-      return '<img src="' + escAttr(t.coverImage) + '" alt="' + escAttr(t.name) + '" loading="lazy" />';
+      return '<img src="' + escAttr(t.coverImage) + '" alt="' + escAttr(t.name) + '" loading="lazy"' +
+        ' onerror="this.outerHTML=' + escAttr(PLACEHOLDER_FAIL) + '"/>';
     }
-    return '<div class="media-placeholder">预览待添加</div>';
+    return '<div ' + PLACEHOLDER_CLASS + '>预览待添加</div>';
   }
 
   function cornerInfo(t) {
@@ -159,9 +225,16 @@
   /* ---------- 详情弹窗 ---------- */
   function openModal(t) {
     var hasDl = !!(t.downloadUrl && String(t.downloadUrl).length > 4);
-    var media = t.previewVideo
-      ? '<video class="modal-video" src="' + escAttr(t.previewVideo) + '" controls playsinline></video>'
-      : '<div class="modal-placeholder">预览视频待添加</div>';
+    var media;
+    if (t.previewVideo) {
+      media = '<video class="modal-video" src="' + escAttr(t.previewVideo) + '" controls playsinline' +
+        ' onerror="this.outerHTML=' + escAttr('<div class="modal-placeholder fail">预览视频加载失败</div>') + '"></video>';
+    } else if (t.coverImage) {
+      media = '<div class="modal-cover-wrap"><img class="modal-cover" src="' + escAttr(t.coverImage) + '" alt="' + escAttr(t.name) + '"' +
+        ' onerror="this.outerHTML=' + escAttr('<div class="modal-placeholder fail">预览图加载失败</div>') + '"/></div>';
+    } else {
+      media = '<div class="modal-placeholder">预览视频待添加</div>';
+    }
     var tags = (t.tags || []).map(function (tag) {
       return '<span class="tag">' + escapeHtml(tag) + "</span>";
     }).join("");
@@ -188,7 +261,7 @@
       (hasDl
         ? '<a class="modal-download" href="' + escAttr(t.downloadUrl) + '" target="_blank" rel="noopener">下载模板文件</a>'
         : '<span class="modal-download disabled">下载链接未配置</span>') +
-      (hasDl ? "" : '<div class="hint">提示：在 js/data.js 中为该模板填写 downloadUrl 即可开启下载</div>');
+      (hasDl ? "" : '<div class="hint">提示：在 add.html 中为该模板填写 downloadUrl 即可开启下载</div>');
 
     el.mask.hidden = false;
     document.body.style.overflow = "hidden";
@@ -208,41 +281,51 @@
     if (e.key === "Escape") closeModal();
   });
 
-  /* ---------- 筛选事件 ---------- */
-  document.querySelectorAll(".filter-tag[data-key]").forEach(function (tag) {
-    tag.addEventListener("click", function () {
-      var key = tag.getAttribute("data-key");
-      var val = tag.getAttribute("data-val");
-      state.filters[key] = val;
-      document.querySelectorAll('.filter-tag[data-key="' + key + '"]').forEach(function (t) {
-        t.classList.toggle("active", t === tag);
+  /* ---------- 筛选事件（委托） ---------- */
+  function bindFilterEvents() {
+    if (el.filterInner) {
+      el.filterInner.addEventListener("click", function (e) {
+        var tag = e.target.closest ? e.target.closest(".filter-tag[data-key]") : null;
+        if (!tag) return;
+        var key = tag.getAttribute("data-key");
+        var val = tag.getAttribute("data-val");
+        state.filters[key] = val;
+        el.filterInner.querySelectorAll('.filter-tag[data-key="' + key + '"]').forEach(function (t) {
+          t.classList.toggle("active", t === tag);
+        });
+        render();
       });
-      render();
-    });
-  });
+    }
 
-  ["resolution", "ratio", "fps", "duration"].forEach(function (k) {
-    el.adv[k].addEventListener("change", function () {
-      state.filters[k] = el.adv[k].value;
-      render();
-    });
-  });
+    if (el.adv) {
+      ["resolution", "ratio", "fps", "duration"].forEach(function (k) {
+        el.adv[k].addEventListener("change", function () {
+          state.filters[k] = el.adv[k].value;
+          render();
+        });
+      });
+    }
 
-  el.btnReset.addEventListener("click", function () {
-    state.query = "";
-    el.search.value = "";
-    state.filters = { type: "__all__", style: "__all__", source: "__all__", resolution: "__all__", ratio: "__all__", fps: "__all__", duration: "__all__" };
-    document.querySelectorAll(".filter-tag[data-key]").forEach(function (t) {
-      t.classList.toggle("active", t.getAttribute("data-val") === "__all__");
-    });
-    Object.keys(el.adv).forEach(function (k) { el.adv[k].value = "__all__"; });
-    render();
-  });
+    if (el.btnReset) {
+      el.btnReset.addEventListener("click", function () {
+        state.query = "";
+        el.search.value = "";
+        state.filters = { type: "__all__", style: "__all__", source: "__all__", resolution: "__all__", ratio: "__all__", fps: "__all__", duration: "__all__" };
+        el.filterInner.querySelectorAll(".filter-tag[data-key]").forEach(function (t) {
+          t.classList.toggle("active", t.getAttribute("data-val") === "__all__");
+        });
+        Object.keys(el.adv).forEach(function (k) { el.adv[k].value = "__all__"; });
+        render();
+      });
+    }
 
-  el.btnCollapse.addEventListener("click", function () {
-    el.panel.classList.toggle("collapsed");
-    el.btnCollapse.textContent = el.panel.classList.contains("collapsed") ? "展开筛选" : "收起筛选";
-  });
+    if (el.btnCollapse) {
+      el.btnCollapse.addEventListener("click", function () {
+        el.panel.classList.toggle("collapsed");
+        el.btnCollapse.textContent = el.panel.classList.contains("collapsed") ? "展开筛选" : "收起筛选";
+      });
+    }
+  }
 
   /* ---------- 搜索与排序 ---------- */
   el.search.addEventListener("input", function () {
@@ -256,5 +339,7 @@
   });
 
   /* ---------- 启动 ---------- */
+  buildFilterPanel();
+  bindFilterEvents();
   render();
 })();
