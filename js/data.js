@@ -38,27 +38,27 @@ window.FILTER_OPTIONS = {
 };
 
 window.TEMPLATES = [
-  {
-    id: "demo-neon-title",
-    name: "霓虹故障标题（示例）",
-    type: "AE模板",
-    category: "标题动画",
-    style: "霓虹赛博",
-    source: "不含AI",
-    tags: ["故障", "霓虹", "赛博", "标题", "开场"],
-    creator: "我的工作室",
-    description: "示例模板：适合短视频开场的故障风标题动画，支持中英文字体替换，AE 2022+ 可直接使用。请将 previewVideo 和 downloadUrl 替换为您的真实文件链接。",
-    previewVideo: "",
-    coverImage: "",
-    downloadUrl: "",
-    fileSize: "约 120 MB",
-    version: "v1.0",
-    software: "AE 2022+",
-    resolution: "1080P",
-    ratio: "16:9",
+    {
+    id: 'demo-neon-title',
+    name: '霓虹故障标题（示例）',
+    type: 'AE模板',
+    category: '标题动画',
+    style: '霓虹赛博',
+    source: '不含AI',
+    tags: ['故障', '霓虹', '赛博', '标题', '开场'],
+    creator: '我的工作室',
+    description: '示例模板：适合短视频开场的故障风标题动画，支持中英文字体替换，AE 2022+ 可直接使用。请将 previewVideo 和 downloadUrl 替换为您的真实文件链接。',
+    previewVideo: '',
+    coverImage: 'https://raw.githubusercontent.com/miaozu8888/ae-/main/previews/Snipaste_2026-08-08_18-03-44.png',
+    downloadUrl: '',
+    fileSize: '约 120 MB',
+    version: 'v1.0',
+    software: 'AE 2022+',
+    resolution: '1080P',
+    ratio: '16:9',
     fps: 30,
     duration: 8,
-    updatedAt: "2026-10-01"
+    updatedAt: '2026-10-01'
   },
   {
     id: "demo-particle-bg",
