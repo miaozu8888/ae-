@@ -39,28 +39,7 @@ window.FILTER_OPTIONS = {
 
 window.TEMPLATES = [
       
-    {
-    id: 'demo-particle-bg',
-    name: '粒子动态背景（示例）',
-    type: 'AE模板',
-    category: '背景素材',
-    style: '粒子光效',
-    source: '不含AI',
-    tags: ['粒子', '背景', '动态', '光效', '合成'],
-    creator: '我的工作室',
-    description: '示例模板：可自由配色的粒子流动背景，适合做舞台大屏、MV 底衬。请将 previewVideo 和 downloadUrl 替换为您的真实文件链接。',
-    previewVideo: '',
-    coverImage: '',
-    downloadUrl: '',
-    fileSize: '约 85 MB',
-    version: 'v2.1',
-    software: 'AE 2023+',
-    resolution: '4K',
-    ratio: '16:9',
-    fps: 25,
-    duration: 15,
-    updatedAt: '2026-09-20'
-  },
+    
   {
     id: "test-cza2",
     name: "测试",
