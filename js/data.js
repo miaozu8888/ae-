@@ -71,7 +71,7 @@ window.TEMPLATES = [
     updatedAt: "2026-09-20"
   }
 ,
-  {
+    {
     id: '测试-cza2',
     name: '测试',
     type: 'AE模板',
@@ -83,7 +83,7 @@ window.TEMPLATES = [
     description: '车饰',
     previewVideo: '',
     coverImage: '',
-    downloadUrl: '通过网盘分享的文件：20240711-2015-2024年回顾短片.mp4 链接: https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q 提取码: 8p6q  --来自百度网盘超级会员v6的分享',
+    downloadUrl: ': https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q',
     fileSize: '',
     version: '',
     software: '',
