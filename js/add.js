@@ -225,8 +225,9 @@
               body: JSON.stringify(body)
             }).then(function (r) {
               if (!r.ok) throw new Error("上传到仓库失败（HTTP " + r.status + "）");
-              var raw = "https://raw.githubusercontent.com/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "/main/previews/" + encodeURIComponent(file.name);
-              resolve({ url: raw, source: "github" });
+              // 用 jsDelivr CDN 代理仓库文件，国内不翻墙也能访问（raw.githubusercontent.com 在国内基本被墙）
+              var raw = "https://cdn.jsdelivr.net/gh/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "@main/previews/" + encodeURIComponent(file.name);
+              resolve({ url: raw, source: "github-jsdelivr" });
             }).catch(reject);
           };
           reader.onerror = function () { reject(new Error("读取文件失败")); };
