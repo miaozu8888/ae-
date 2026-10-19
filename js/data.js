@@ -1,6 +1,9 @@
 /* =========================================================
  * 模板数据文件：新增模板只需在 TEMPLATES 数组里加一条记录
- * （推荐用「添加模板」工具页 add.html 自动生成，再粘贴到这里）
+ * （推荐用「添加模板」工具页 add.html 自动生成）
+ *
+ * FILTER_OPTIONS：筛选面板标签（类型/风格/创作/分辨率/宽高比/帧率）
+ *   可在 add.html「筛选标签管理」区块增删改，保存后自动生效
  *
  * 字段说明：
  *   id          唯一标识（字符串，建议英文+数字）
@@ -24,6 +27,15 @@
  *   duration     时长（秒，用于高级筛选）
  *   updatedAt    更新时间 YYYY-MM-DD
  * ========================================================= */
+
+window.FILTER_OPTIONS = {
+  type: ["AE模板", "Pr模板", "视频素材", "C4D模型", "FCP模板", "3dMax模型", "其他"],
+  style: ["实拍写实", "立体三维", "平面二维", "抽象光影", "故障风", "霓虹赛博", "粒子光效", "简约卡通风"],
+  source: ["真实影像", "含AI", "不含AI"],
+  resolution: ["4K", "1080P", "720P"],
+  ratio: ["16:9", "9:16", "1:1", "4:3"],
+  fps: ["24", "25", "30", "60"]
+};
 
 window.TEMPLATES = [
   {
@@ -69,30 +81,27 @@ window.TEMPLATES = [
     fps: 25,
     duration: 15,
     updatedAt: "2026-09-20"
-  }
-
-
-,
-    {
-    id: '测试-cza2',
-    name: '测试',
-    type: 'AE模板',
-    category: '',
-    style: '平面二维',
-    source: '真实影像',
+  },
+  {
+    id: "test-cza2",
+    name: "测试",
+    type: "AE模板",
+    category: "",
+    style: "平面二维",
+    source: "真实影像",
     tags: [],
-    creator: '',
-    description: '111',
-    previewVideo: '',
-    coverImage: '',
-    downloadUrl: 'https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q',
-    fileSize: '',
-    version: '',
-    software: '',
-    resolution: '4K',
-    ratio: '16:9',
+    creator: "",
+    description: "车饰",
+    previewVideo: "",
+    coverImage: "",
+    downloadUrl: "https://pan.baidu.com/s/1csTMUwa_F1ZPzh_uilqh1Q?pwd=8p6q",
+    fileSize: "",
+    version: "",
+    software: "",
+    resolution: "4K",
+    ratio: "16:9",
     fps: 24,
     duration: 0,
-    updatedAt: '2026-10-19'
+    updatedAt: "2026-10-19"
   }
 ];
