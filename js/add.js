@@ -355,6 +355,309 @@
     el.className = "save-status" + (cls ? " " + cls : "");
   }
 
+  /* =========================================================
+   * 后台管理：加载 / 编辑 / 删除已有模板（直接写回 GitHub 仓库）
+   * ========================================================= */
+  var MANAGE_STATE = { id: null, name: "", raw: "", blocks: [] };
+
+  function manageStatus(msg, cls) {
+    var el = $("manage-status");
+    if (!el) return;
+    el.textContent = msg;
+    el.className = "save-status" + (cls ? " " + cls : "");
+  }
+
+  function getRepoConfig() {
+    return {
+      owner: $("gh-owner").value.trim(),
+      repo: $("gh-repo").value.trim(),
+      token: $("gh-token").value.trim()
+    };
+  }
+
+  function requireRepoConfig() {
+    var cfg = getRepoConfig();
+    if (!cfg.owner || !cfg.repo || !cfg.token) {
+      manageStatus("请先在上方 GitHub 配置区填写用户名、仓库名和 Token（点「保存配置」可记住）", "err");
+      return null;
+    }
+    return cfg;
+  }
+
+  function dataJsApi(cfg) {
+    return "https://api.github.com/repos/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "/contents/js/data.js";
+  }
+
+  /* 文本级解析：定位 data.js 中每条模板记录 { ... } 块（start/end 为文本偏移） */
+  function parseTemplateBlocks(text) {
+    var blocks = [];
+    var i = 0, len = text.length;
+    var inStr = null, esc = false, depth = 0, blockStart = -1;
+    for (; i < len; i++) {
+      var ch = text[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (ch === "\\") esc = true;
+        else if (ch === inStr) inStr = null;
+        continue;
+      }
+      if (ch === '"' || ch === "'") { inStr = ch; continue; }
+      if (ch === "{") {
+        if (depth === 0) blockStart = i;
+        depth++;
+      } else if (ch === "}") {
+        depth--;
+        if (depth === 0 && blockStart !== -1) {
+          blocks.push({ start: blockStart, end: i + 1 });
+          blockStart = -1;
+        }
+      }
+    }
+    return blocks;
+  }
+
+  function unquoteJs(s) {
+    if (!s) return "";
+    if ((s[0] === "'" && s[s.length - 1] === "'") || (s[0] === '"' && s[s.length - 1] === '"')) {
+      s = s.slice(1, -1);
+    }
+    return s.replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\\\/g, "\\").replace(/\\n/g, "\n");
+  }
+
+  function parseRecordData(blockText) {
+    var data = {};
+    var lines = blockText.split("\n");
+    for (var n = 0; n < lines.length; n++) {
+      var m = lines[n].match(/^\s*([A-Za-z_$][\w$]*)\s*:\s*(.*?),?\s*$/);
+      if (!m) continue;
+      var raw = m[2].trim();
+      if (raw === "") { data[m[1]] = ""; continue; }
+      if (raw.charAt(0) === "[") {
+        var arr = [];
+        var re = /'([^'\\]*(?:\\.[^'\\]*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"/g;
+        var mm;
+        while ((mm = re.exec(raw)) !== null) {
+          arr.push(unquoteJs(mm[1] != null ? mm[1] : mm[2]));
+        }
+        data[m[1]] = arr;
+      } else if (/^-?\d+(\.\d+)?$/.test(raw)) {
+        data[m[1]] = Number(raw);
+      } else {
+        data[m[1]] = unquoteJs(raw);
+      }
+    }
+    return data;
+  }
+
+  /* 回填表单（左侧所有字段） */
+  function fillForm(data) {
+    FIELDS.forEach(function (k) {
+      var el = $(k === "id" ? "f-id" : "f-" + k);
+      if (!el) return;
+      var v = data[k] != null ? data[k] : "";
+      if (k === "tags" && Array.isArray(v)) v = v.join(", ");
+      if (el.tagName === "SELECT") {
+        var exists = false;
+        for (var i = 0; i < el.options.length; i++) {
+          if (el.options[i].value === v) { exists = true; break; }
+        }
+        if (!exists) {
+          var opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v || "(空)";
+          el.appendChild(opt);
+        }
+        el.value = v;
+      } else {
+        el.value = v;
+      }
+    });
+    renderCode();
+  }
+
+  /* 在最新文本中按 id 定位并替换 / 删除记录块，返回新文本（未找到返回 null） */
+  function replaceRecordById(text, id, newBlock) {
+    var blocks = parseTemplateBlocks(text);
+    for (var i = 0; i < blocks.length; i++) {
+      var data = parseRecordData(text.slice(blocks[i].start, blocks[i].end));
+      if (data.id === id) {
+        return text.slice(0, blocks[i].start) + newBlock + text.slice(blocks[i].end);
+      }
+    }
+    return null;
+  }
+
+  function removeRecordById(text, id) {
+    var blocks = parseTemplateBlocks(text);
+    for (var i = 0; i < blocks.length; i++) {
+      var data = parseRecordData(text.slice(blocks[i].start, blocks[i].end));
+      if (data.id !== id) continue;
+      var start = blocks[i].start;
+      var end = blocks[i].end;
+      var before = text.slice(0, start);
+      var commaIdx = before.lastIndexOf(",");
+      if (commaIdx !== -1 && /^\s*$/.test(before.slice(commaIdx + 1))) {
+        start = commaIdx; // 删除前一条记录后的逗号分隔符
+      } else {
+        var after = text.slice(end);
+        var lead = after.match(/^\s*,/);
+        if (lead) end = end + lead[0].length; // 第一条记录：删除其后的逗号
+      }
+      return text.slice(0, start) + text.slice(end);
+    }
+    return null;
+  }
+
+  /* 通用 PUT：先 GET 最新内容拿 sha，再以 nextMaker 生成新文本并覆盖写入 */
+  function putDataJs(cfg, message, nextMaker, btn, okText) {
+    var api = dataJsApi(cfg);
+    fetch(api, { headers: ghHeaders(cfg.token) })
+      .then(function (r) {
+        if (!r.ok) throw new Error("读取最新 js/data.js 失败（HTTP " + r.status + "），请检查仓库名与 Token 权限");
+        return r.json();
+      })
+      .then(function (meta) {
+        var latest = b64decodeUtf8(meta.content);
+        var next = nextMaker(latest);
+        if (next === null || next === undefined) throw new Error("未在最新 js/data.js 中找到目标模板，可能已被他人修改，请重新加载列表");
+        return fetch(api, {
+          method: "PUT",
+          headers: ghHeaders(cfg.token),
+          body: JSON.stringify({
+            message: message,
+            content: b64encodeUtf8(next),
+            sha: meta.sha
+          })
+        });
+      })
+      .then(function (r) {
+        if (!r.ok) throw new Error("写入失败（HTTP " + r.status + "），GitHub 可能已拒绝提交");
+        return r.json();
+      })
+      .then(function () {
+        btn.classList.remove("uploading");
+        btn.textContent = okText;
+        return true;
+      })
+      .catch(function (e) {
+        btn.classList.remove("uploading");
+        btn.textContent = okText;
+        manageStatus(e.message || "操作失败，请重试", "err");
+        return false;
+      });
+  }
+
+  function resetManageSelection() {
+    MANAGE_STATE.id = null;
+    MANAGE_STATE.name = "";
+    $("tmpl-list").selectedIndex = 0;
+  }
+
+  /* ① 一键加载模板列表 */
+  $("btn-load-templates").addEventListener("click", function () {
+    var cfg = requireRepoConfig();
+    if (!cfg) return;
+    saveConfig();
+    var btn = $("btn-load-templates");
+    var sel = $("tmpl-list");
+    btn.classList.add("uploading");
+    btn.textContent = "加载中…";
+    fetch(dataJsApi(cfg), { headers: ghHeaders(cfg.token) })
+      .then(function (r) {
+        if (!r.ok) throw new Error("读取 js/data.js 失败（HTTP " + r.status + "），请检查仓库名与 Token 权限");
+        return r.json();
+      })
+      .then(function (meta) {
+        var text = b64decodeUtf8(meta.content);
+        var blocks = parseTemplateBlocks(text);
+        if (!blocks.length) throw new Error("js/data.js 中未解析到任何模板记录");
+        sel.innerHTML = "";
+        var count = 0;
+        blocks.forEach(function (b) {
+          var data = parseRecordData(text.slice(b.start, b.end));
+          var id = data.id || "";
+          if (!id) return;
+          var opt = document.createElement("option");
+          opt.value = String(count);
+          opt.textContent = (data.name || "(未命名)") + " ｜ " + id;
+          sel.appendChild(opt);
+          count++;
+        });
+        if (!count) throw new Error("模板记录均缺少 id 字段，无法管理");
+        MANAGE_STATE.raw = text;
+        MANAGE_STATE.blocks = blocks;
+        sel.selectedIndex = 0;
+        btn.classList.remove("uploading");
+        btn.textContent = "加载模板列表";
+        manageStatus("已加载 " + count + " 条模板，选择一条后自动回填表单", "ok");
+      })
+      .catch(function (e) {
+        btn.classList.remove("uploading");
+        btn.textContent = "加载模板列表";
+        manageStatus(e.message || "加载失败，请重试", "err");
+      });
+  });
+
+  /* ② 选中模板 → 回填左侧表单 */
+  $("tmpl-list").addEventListener("change", function () {
+    var idx = Number(this.value);
+    if (!(idx >= 0) || !MANAGE_STATE.blocks.length) {
+      manageStatus("请先点击「加载模板列表」", "err");
+      return;
+    }
+    var block = MANAGE_STATE.blocks[idx];
+    var data = parseRecordData(MANAGE_STATE.raw.slice(block.start, block.end));
+    MANAGE_STATE.id = data.id;
+    MANAGE_STATE.name = data.name || "";
+    fillForm(data);
+    manageStatus("已载入「" + MANAGE_STATE.name + "」，修改字段后点「保存修改」", "ok");
+  });
+
+  /* ③ 保存修改：拿最新 sha → 替换对应记录 → PUT 覆盖整份 data.js */
+  $("btn-save-edit").addEventListener("click", function () {
+    var cfg = requireRepoConfig();
+    if (!cfg) return;
+    if (!MANAGE_STATE.id) { manageStatus("请先加载列表并选择一条模板", "err"); return; }
+    var name = $("f-name").value.trim();
+    if (!name) { manageStatus("模板名称不能为空", "err"); return; }
+
+    var d = collect();
+    if (!d.updatedAt.trim()) d.updatedAt = today();
+    var newBlock = stripHead(buildCode(d));
+    var btn = $("btn-save-edit");
+    btn.classList.add("uploading");
+    btn.textContent = "保存中…";
+
+    putDataJs(cfg, "update template: " + name, function (latest) {
+      return replaceRecordById(latest, MANAGE_STATE.id, newBlock);
+    }, btn, "保存修改").then(function (ok) {
+      if (!ok) return;
+      MANAGE_STATE.name = name;
+      manageStatus("已更新「" + name + "」并写入仓库 js/data.js，GitHub Pages 约 1~2 分钟后生效", "ok");
+    });
+  });
+
+  /* ④ 删除该模板：拿最新 sha → 移除对应记录 → PUT 覆盖整份 data.js */
+  $("btn-delete-tmpl").addEventListener("click", function () {
+    var cfg = requireRepoConfig();
+    if (!cfg) return;
+    if (!MANAGE_STATE.id) { manageStatus("请先加载列表并选择一条模板", "err"); return; }
+    var target = MANAGE_STATE.name || MANAGE_STATE.id;
+    if (!window.confirm("确认删除模板「" + target + "」吗？删除将立即写入 GitHub 仓库 js/data.js，页面上无法恢复。")) return;
+
+    var btn = $("btn-delete-tmpl");
+    btn.classList.add("uploading");
+    btn.textContent = "删除中…";
+    putDataJs(cfg, "delete template: " + target, function (latest) {
+      return removeRecordById(latest, MANAGE_STATE.id);
+    }, btn, "删除该模板").then(function (ok) {
+      if (!ok) return;
+      manageStatus("已删除「" + target + "」并写入仓库 js/data.js，GitHub Pages 约 1~2 分钟后生效", "ok");
+      resetManageSelection();
+      $("btn-clear").click(); // 清空表单，避免误改残留数据
+    });
+  });
+
   /* ---------- 启动 ---------- */
   loadConfig();
   renderCode();
