@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -91,7 +91,7 @@
           </div>
         </label>
       </div>
-      <div class="upload-hint">点击「上传文件」后自动上传到免费匿名文件托管并回填直链；大文件建议仍用 R2 或网盘。</div>
+      <div class="upload-hint">点击「上传文件」：若上方已配置 GitHub，文件会传到仓库 previews/ 目录并回填直链（预览最稳定）；未配置则回退匿名托管。大文件建议仍用 R2 或网盘。</div>
 
       <div class="form-section">技术参数</div>
       <div class="form-grid">
@@ -168,6 +168,30 @@
       </div>
 
       <div class="github-manage">
+        <div class="form-section">筛选标签管理（增删改首页筛选标签）</div>
+        <p class="page-desc">首页筛选面板的类型 / 风格 / 创作标签来自 <code>js/data.js</code> 的 <code>FILTER_OPTIONS</code>。在这里增删改后点「保存标签」，会直接写回仓库；添加模板表单里的类型 / 风格 / 创作下拉也会同步更新。</p>
+        <div class="form-grid">
+          <label class="field span-2">
+            <span>类型标签（每行一个，逗号分隔）</span>
+            <textarea id="fo-type" class="field-textarea" rows="2" placeholder="AE模板, Pr模板, 视频素材"></textarea>
+          </label>
+          <label class="field span-2">
+            <span>风格标签（每行一个，逗号分隔）</span>
+            <textarea id="fo-style" class="field-textarea" rows="3" placeholder="实拍写实, 立体三维, 平面二维"></textarea>
+          </label>
+          <label class="field span-2">
+            <span>创作标签（每行一个，逗号分隔）</span>
+            <textarea id="fo-source" class="field-textarea" rows="2" placeholder="真实影像, 含AI, 不含AI"></textarea>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="tool-btn" id="btn-load-filter-options">从仓库加载当前标签</button>
+          <button class="add-btn" id="btn-save-filter-options">保存标签到 GitHub</button>
+        </div>
+        <div class="save-status" id="filter-status"></div>
+      </div>
+
+      <div class="github-manage">
         <div class="form-section">编辑 / 删除已有模板（后台管理）</div>
         <p class="page-desc">一键加载仓库 <code>js/data.js</code> 中的模板列表，选中后自动回填左侧表单；修改任意字段（如预览视频 previewVideo、下载链接 downloadUrl）后点「保存修改」，或直接「删除该模板」。所有写入均通过 GitHub API 覆盖整份 <code>js/data.js</code>。</p>
         <div class="form-grid">
@@ -213,6 +237,8 @@
     <p>模板下载 · 添加模板工具页 · <a href="index.html">返回模板库</a></p>
   </footer>
 
+  <script src="js/data.js"></script>
   <script src="js/add.js"></script>
 </body>
 </html>
+
