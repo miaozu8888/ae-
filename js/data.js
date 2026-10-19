@@ -38,7 +38,7 @@ window.FILTER_OPTIONS = {
 };
 
 window.TEMPLATES = [
-    {
+      {
     id: 'demo-neon-title',
     name: '霓虹故障标题（示例）',
     type: 'AE模板',
@@ -48,7 +48,7 @@ window.TEMPLATES = [
     tags: ['故障', '霓虹', '赛博', '标题', '开场'],
     creator: '我的工作室',
     description: '示例模板：适合短视频开场的故障风标题动画，支持中英文字体替换，AE 2022+ 可直接使用。请将 previewVideo 和 downloadUrl 替换为您的真实文件链接。',
-    previewVideo: '',
+    previewVideo: 'https://raw.githubusercontent.com/miaozu8888/ae-/main/previews/40da7238c792a9d71807e79113dd899a_raw.mp4',
     coverImage: 'https://raw.githubusercontent.com/miaozu8888/ae-/main/previews/Snipaste_2026-08-08_18-03-44.png',
     downloadUrl: '',
     fileSize: '约 120 MB',
