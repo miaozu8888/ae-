@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -25,58 +25,9 @@
     </div>
   </header>
 
-  <!-- 筛选面板 -->
+  <!-- 筛选面板（标签由 js/data.js 的 FILTER_OPTIONS 动态生成） -->
   <section class="filter-panel" id="filter-panel">
-    <div class="filter-inner">
-      <div class="filter-row" id="row-type">
-        <span class="filter-label">类型</span>
-        <div class="filter-tags">
-          <span class="filter-tag active" data-key="type" data-val="__all__">全部类型</span>
-          <span class="filter-tag" data-key="type" data-val="AE模板">AE模板</span>
-          <span class="filter-tag" data-key="type" data-val="Pr模板">Pr模板</span>
-          <span class="filter-tag" data-key="type" data-val="视频素材">视频素材</span>
-          <span class="filter-tag" data-key="type" data-val="C4D模型">C4D模型</span>
-          <span class="filter-tag" data-key="type" data-val="FCP模板">FCP模板</span>
-          <span class="filter-tag" data-key="type" data-val="3dMax模型">3dMax模型</span>
-        </div>
-      </div>
-      <div class="filter-row" id="row-style">
-        <span class="filter-label">风格</span>
-        <div class="filter-tags">
-          <span class="filter-tag active" data-key="style" data-val="__all__">全部风格</span>
-          <span class="filter-tag" data-key="style" data-val="实拍写实">实拍写实</span>
-          <span class="filter-tag" data-key="style" data-val="立体三维">立体三维</span>
-          <span class="filter-tag" data-key="style" data-val="平面二维">平面二维</span>
-          <span class="filter-tag" data-key="style" data-val="抽象光影">抽象光影</span>
-          <span class="filter-tag" data-key="style" data-val="故障风">故障风</span>
-          <span class="filter-tag" data-key="style" data-val="霓虹赛博">霓虹赛博</span>
-          <span class="filter-tag" data-key="style" data-val="粒子光效">粒子光效</span>
-          <span class="filter-tag" data-key="style" data-val="简约卡通风">简约卡通风</span>
-        </div>
-      </div>
-      <div class="filter-row" id="row-source">
-        <span class="filter-label">创作</span>
-        <div class="filter-tags">
-          <span class="filter-tag active" data-key="source" data-val="__all__">全部创作</span>
-          <span class="filter-tag" data-key="source" data-val="真实影像">真实影像</span>
-          <span class="filter-tag" data-key="source" data-val="含AI">含AI</span>
-          <span class="filter-tag" data-key="source" data-val="不含AI">不含AI</span>
-        </div>
-      </div>
-      <div class="filter-row" id="row-advanced">
-        <span class="filter-label">高级</span>
-        <div class="filter-tags">
-          <select class="adv-select" id="adv-resolution"><option value="__all__">分辨率</option><option value="4K">4K</option><option value="1080P">1080P</option><option value="720P">720P</option></select>
-          <select class="adv-select" id="adv-ratio"><option value="__all__">宽高比</option><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option><option value="4:3">4:3</option></select>
-          <select class="adv-select" id="adv-fps"><option value="__all__">帧率</option><option value="24">24fps</option><option value="25">25fps</option><option value="30">30fps</option><option value="60">60fps</option></select>
-          <select class="adv-select" id="adv-duration"><option value="__all__">时长</option><option value="short">10秒内</option><option value="mid">10-30秒</option><option value="long">30秒以上</option></select>
-        </div>
-        <div class="filter-tools">
-          <button class="tool-btn" id="btn-collapse" title="收起/展开筛选">收起筛选</button>
-          <button class="tool-btn" id="btn-reset" title="重置所有条件">条件重置</button>
-        </div>
-      </div>
-    </div>
+    <div class="filter-inner" id="filter-inner"></div>
   </section>
 
   <main class="site-main">
@@ -106,4 +57,5 @@
   <script src="js/app.js"></script>
 </body>
 </html>
+
 
