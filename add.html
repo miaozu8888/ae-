@@ -166,6 +166,27 @@
         </div>
         <div class="save-status" id="save-status"></div>
       </div>
+
+      <div class="github-manage">
+        <div class="form-section">编辑 / 删除已有模板（后台管理）</div>
+        <p class="page-desc">一键加载仓库 <code>js/data.js</code> 中的模板列表，选中后自动回填左侧表单；修改任意字段（如预览视频 previewVideo、下载链接 downloadUrl）后点「保存修改」，或直接「删除该模板」。所有写入均通过 GitHub API 覆盖整份 <code>js/data.js</code>。</p>
+        <div class="form-grid">
+          <label class="field span-2">
+            <span>选择要编辑的模板</span>
+            <div class="input-row">
+              <select id="tmpl-list">
+                <option value="">— 点击右侧「加载模板列表」—</option>
+              </select>
+              <button type="button" class="tool-btn" id="btn-load-templates">加载模板列表</button>
+            </div>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="add-btn" id="btn-save-edit">保存修改</button>
+          <button type="button" class="tool-btn" id="btn-delete-tmpl" style="color:#c0392b;border-color:#c0392b;">删除该模板</button>
+        </div>
+        <div class="save-status" id="manage-status"></div>
+      </div>
     </div>
 
     <div class="add-col code-col">
