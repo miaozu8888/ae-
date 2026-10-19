@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
  * 添加模板工具页逻辑：表单 → 生成 data.js 代码 → 复制
  * ========================================================= */
 
@@ -11,6 +11,33 @@
     "resolution", "ratio", "fps", "duration", "fileSize", "version", "software", "updatedAt",
     "description"
   ];
+
+  var FILTER_OPTIONS = window.FILTER_OPTIONS || { type: [], style: [], source: [], resolution: [], ratio: [], fps: [] };
+
+  /* 下拉选项：跟随 data.js 的 FILTER_OPTIONS 动态生成 */
+  function fillSelectOptions() {
+    var map = {
+      "f-type": FILTER_OPTIONS.type || [],
+      "f-style": FILTER_OPTIONS.style || [],
+      "f-source": FILTER_OPTIONS.source || [],
+      "f-resolution": FILTER_OPTIONS.resolution || [],
+      "f-ratio": FILTER_OPTIONS.ratio || [],
+      "f-fps": FILTER_OPTIONS.fps || []
+    };
+    Object.keys(map).forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      var cur = el.value;
+      el.innerHTML = "";
+      (map[id].length ? map[id] : [""]).forEach(function (v) {
+        var opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v || "(空)";
+        el.appendChild(opt);
+      });
+      if (cur) el.value = cur;
+    });
+  }
 
   function $(id) { return document.getElementById(id); }
 
@@ -170,13 +197,57 @@
     renderCode();
   });
 
-  /* ---------- 文件上传（匿名托管，自动回填直链） ---------- */
+  /* ---------- 文件上传（优先 GitHub 仓库 previews/ 目录，失败回退匿名托管） ---------- */
   var UPLOAD_SERVICES = [
     { name: "0x0.st", url: "https://0x0.st", field: "file" },
     { name: "catbox.moe", url: "https://catbox.moe/user/api.php", field: "reqtype=fileupload" }
   ];
 
+  function ghUploadFile(cfg, file) {
+    var api = "https://api.github.com/repos/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "/contents/previews/" + encodeURIComponent(file.name);
+    return fetch(api, { headers: ghHeaders(cfg.token) })
+      .then(function (r) {
+        var sha = null;
+        if (r.ok) return r.json().then(function (j) { sha = j.sha; return sha; });
+        if (r.status === 404) return null;
+        throw new Error("查询 previews 目录失败（HTTP " + r.status + "）");
+      })
+      .then(function (sha) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            var base64 = String(reader.result).split(",")[1];
+            var body = { message: "upload preview: " + file.name, content: base64 };
+            if (sha) body.sha = sha;
+            fetch(api, {
+              method: "PUT",
+              headers: ghHeaders(cfg.token),
+              body: JSON.stringify(body)
+            }).then(function (r) {
+              if (!r.ok) throw new Error("上传到仓库失败（HTTP " + r.status + "）");
+              var raw = "https://raw.githubusercontent.com/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "/main/previews/" + encodeURIComponent(file.name);
+              resolve({ url: raw, source: "github" });
+            }).catch(reject);
+          };
+          reader.onerror = function () { reject(new Error("读取文件失败")); };
+          reader.readAsDataURL(file);
+        });
+      });
+  }
+
   function uploadFile(file) {
+    // 若已配置 GitHub，优先上传到仓库 previews/（直链稳定，含 .gitignore 保护）
+    var cfg = getRepoConfig();
+    if (cfg.owner && cfg.repo && cfg.token) {
+      return ghUploadFile(cfg, file).catch(function (e) {
+        // 仓库上传失败才回退匿名托管
+        return anonUploadFile(file);
+      });
+    }
+    return anonUploadFile(file);
+  }
+
+  function anonUploadFile(file) {
     var data = new FormData();
     data.append("file", file);
     return fetch(UPLOAD_SERVICES[0].url, { method: "POST", body: data })
@@ -187,7 +258,7 @@
       .then(function (text) {
         var url = String(text || "").trim();
         if (!/^https?:\/\//.test(url)) throw new Error("响应不是直链");
-        return url;
+        return { url: url, source: "0x0.st" };
       })
       .catch(function (e) {
         // 备用：catbox
@@ -199,7 +270,7 @@
           .then(function (text) {
             var url = String(text || "").trim();
             if (!/^https?:\/\//.test(url)) throw new Error("响应不是直链");
-            return url;
+            return { url: url, source: "catbox.moe" };
           });
       });
   }
@@ -217,7 +288,8 @@
         var oldText = btn.textContent;
         btn.classList.add("uploading");
         btn.textContent = "上传中…";
-        uploadFile(file).then(function (url) {
+        uploadFile(file).then(function (res) {
+          var url = res && res.url ? res.url : res;
           var field = $(target);
           field.value = url;
           btn.textContent = "✓ 已上传";
@@ -658,7 +730,131 @@
     });
   });
 
+  /* =========================================================
+   * 筛选标签管理：加载 / 保存 data.js 中的 FILTER_OPTIONS
+   * ========================================================= */
+  var FO_KEYS = ["type", "style", "source"];
+
+  function filterStatus(msg, cls) {
+    var el = $("filter-status");
+    if (!el) return;
+    el.textContent = msg;
+    el.className = "save-status" + (cls ? " " + cls : "");
+  }
+
+  function parseFilterOptions(text) {
+    // 定位 window.FILTER_OPTIONS = { ... }; 的 { } 块
+    var idx = text.indexOf("FILTER_OPTIONS");
+    if (idx === -1) return null;
+    var start = text.indexOf("{", idx);
+    if (start === -1) return null;
+    var depth = 0, inStr = null, esc = false;
+    for (var i = start; i < text.length; i++) {
+      var ch = text[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (ch === "\\") esc = true;
+        else if (ch === inStr) inStr = null;
+        continue;
+      }
+      if (ch === '"' || ch === "'") { inStr = ch; continue; }
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) return { start: start, end: i + 1, text: text.slice(start, i + 1) };
+      }
+    }
+    return null;
+  }
+
+  function parseFilterOptionsData(blockText) {
+    var out = {};
+    FO_KEYS.forEach(function (k) {
+      var re = new RegExp("\\b" + k + "\\s*:\\s*\\[([^\\]]*)\\]");
+      var m = blockText.match(re);
+      if (!m) { out[k] = []; return; }
+      var arr = [];
+      var vre = /'([^']*)'|"([^"]*)"/g;
+      var mm;
+      while ((mm = vre.exec(m[1])) !== null) arr.push(mm[1] != null ? mm[1] : mm[2]);
+      out[k] = arr;
+    });
+    return out;
+  }
+
+  function buildFilterOptionsCode(data) {
+    var lines = [];
+    lines.push("window.FILTER_OPTIONS = {");
+    FO_KEYS.forEach(function (k, i) {
+      var arr = (data[k] || []).filter(function (s) { return String(s).trim() !== ""; });
+      var joined = arr.map(function (s) { return "'" + escCode(String(s).trim()) + "'"; }).join(", ");
+      lines.push("  " + k + ": [" + joined + "]" + (i === FO_KEYS.length - 1 ? "" : ","));
+    });
+    lines.push("};");
+    return lines.join("\n");
+  }
+
+  $("btn-load-filter-options").addEventListener("click", function () {
+    var cfg = requireRepoConfig();
+    if (!cfg) return;
+    saveConfig();
+    var btn = $("btn-load-filter-options");
+    btn.classList.add("uploading");
+    btn.textContent = "加载中…";
+    fetch(dataJsApi(cfg), { headers: ghHeaders(cfg.token) })
+      .then(function (r) {
+        if (!r.ok) throw new Error("读取 js/data.js 失败（HTTP " + r.status + "）");
+        return r.json();
+      })
+      .then(function (meta) {
+        var text = b64decodeUtf8(meta.content);
+        var block = parseFilterOptions(text);
+        if (!block) throw new Error("未找到 FILTER_OPTIONS 配置块");
+        var data = parseFilterOptionsData(block.text);
+        FO_KEYS.forEach(function (k) {
+          var el = $("fo-" + k);
+          if (el) el.value = (data[k] || []).join(", ");
+        });
+        btn.classList.remove("uploading");
+        btn.textContent = "从仓库加载当前标签";
+        filterStatus("已加载当前筛选标签，修改后点「保存标签到 GitHub」", "ok");
+      })
+      .catch(function (e) {
+        btn.classList.remove("uploading");
+        btn.textContent = "从仓库加载当前标签";
+        filterStatus(e.message || "加载失败", "err");
+      });
+  });
+
+  $("btn-save-filter-options").addEventListener("click", function () {
+    var cfg = requireRepoConfig();
+    if (!cfg) return;
+    var data = {};
+    FO_KEYS.forEach(function (k) {
+      var el = $("fo-" + k);
+      var raw = el ? el.value : "";
+      data[k] = raw.split(/[,，\n]/).map(function (s) { return s.trim(); }).filter(Boolean);
+    });
+    var newBlock = buildFilterOptionsCode(data);
+    var btn = $("btn-save-filter-options");
+    btn.classList.add("uploading");
+    btn.textContent = "保存中…";
+
+    putDataJs(cfg, "update filter options", function (latest) {
+      var block = parseFilterOptions(latest);
+      if (!block) return null;
+      return latest.slice(0, block.start) + newBlock + latest.slice(block.end);
+    }, btn, "保存标签到 GitHub").then(function (ok) {
+      if (!ok) return;
+      FILTER_OPTIONS = data;
+      fillSelectOptions();
+      filterStatus("筛选标签已写入仓库 js/data.js，GitHub Pages 约 1~2 分钟后生效", "ok");
+    });
+  });
+
   /* ---------- 启动 ---------- */
   loadConfig();
+  fillSelectOptions();
   renderCode();
 })();
+
