@@ -69,28 +69,6 @@ window.TEMPLATES = [
     fps: 25,
     duration: 15,
     updatedAt: "2026-09-20"
-  },
-  {
-    id: "demo-transition-glitch",
-    name: "故障转场包（示例）",
-    type: "AE模板",
-    category: "转场",
-    style: "故障风",
-    source: "不含AI",
-    tags: ["转场", "故障", "卡顿", "过渡", "电音"],
-    creator: "我的工作室",
-    description: "示例模板：12 组故障风转场预设，拖拽即用。请将 previewVideo 和 downloadUrl 替换为您的真实文件链接。",
-    previewVideo: "",
-    coverImage: "",
-    downloadUrl: "",
-    fileSize: "约 200 MB",
-    version: "v1.3",
-    software: "AE 2022+ / PR 2022+",
-    resolution: "1080P",
-    ratio: "16:9",
-    fps: 30,
-    duration: 12,
-    updatedAt: "2026-08-15"
   }
 ,
   {
