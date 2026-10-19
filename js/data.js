@@ -28,14 +28,11 @@
  *   updatedAt    更新时间 YYYY-MM-DD
  * ========================================================= */
 
-window.FILTER_OPTIONS = {
-  type: ["AE模板", "Pr模板", "视频素材", "C4D模型", "FCP模板", "3dMax模型", "其他"],
-  style: ["实拍写实", "立体三维", "平面二维", "抽象光影", "故障风", "霓虹赛博", "粒子光效", "简约卡通风"],
-  source: ["真实影像", "含AI", "不含AI"],
-  resolution: ["4K", "1080P", "720P"],
-  ratio: ["16:9", "9:16", "1:1", "4:3"],
-  fps: ["24", "25", "30", "60"]
-};
+window.FILTER_OPTIONS = window.FILTER_OPTIONS = {
+  type: [],
+  style: [],
+  source: []
+};;
 
 window.TEMPLATES = [
       
